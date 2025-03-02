@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administración</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Administración</h1>
+    <form id="formTrabajador">
+      <h2>Agregar Trabajador</h2>
+      <input type="text" id="nombreTrabajador" placeholder="Nombre del Trabajador" required>
+      <input type="number" id="pagoPorDia" placeholder="Pago por Día" step="0.01" required>
+      <button type="submit">Agregar</button>
+    </form>
+    <h2>Trabajadores</h2>
+    <table id="tablaTrabajadores">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Pago por Día</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Filas de trabajadores se llenarán con JavaScript -->
+      </tbody>
+    </table>
+
+    <form id="formRegistro">
+      <h2>Registrar Día y Comidas</h2>
+      <label>Trabajadores:</label>
+      <div id="listaTrabajadores">
+        <!-- Opciones de trabajadores se llenarán con JavaScript -->
+      </div>
+
+      <label for="fecha">Fecha:</label>
+      <input type="date" id="fecha" required>
+
+      <label>¿Trabajó ese día?</label>
+      <div>
+        <input type="checkbox" id="trabajo" value="Sí">
+        <label for="trabajo">Sí</label>
+      </div>
+
+      <label>Comidas:</label>
+      <div>
+        <input type="checkbox" id="desayuno" value="Desayuno">
+        <label for="desayuno">Desayuno</label>
+        <input type="checkbox" id="almuerzo" value="Almuerzo">
+        <label for="almuerzo">Almuerzo</label>
+        <input type="checkbox" id="cena" value="Cena">
+        <label for="cena">Cena</label>
+      </div>
+
+      <button type="submit">Registrar</button>
+    </form>
+
+    <form id="formAnticipo" style="display: none;">
+      <h2>Solicitar Anticipo</h2>
+      <label for="trabajadorAnticipo">Trabajador:</label>
+      <select id="trabajadorAnticipo" required>
+        <!-- Opciones de trabajadores se llenarán con JavaScript -->
+      </select>
+
+      <label for="montoAnticipo">Monto:</label>
+      <input type="number" id="montoAnticipo" step="0.01" required>
+
+      <label for="fechaAnticipo">Fecha:</label>
+      <input type="date" id="fechaAnticipo" required>
+
+      <button type="submit">Registrar Anticipo</button>
+      <button type="button" id="cerrarAnticipo">Cerrar</button> <!-- Botón para cerrar el formulario -->
+    </form>
+
+    <div id="tablaRegistros">
+      <h2>Registros</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Trabajador</th>
+            <th>Trabajó</th>
+            <th>Comidas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Filas de registros se llenarán con JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tablaResumen">
+      <h2>Resumen de Pagos</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Trabajador</th>
+            <th>Gasto en Comida</th>
+            <th>Días Trabajados</th>
+            <th>Total Bruto</th>
+            <th>Anticipos</th>
+            <th>Total a Pagar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Filas de resumen se llenarán con JavaScript -->
+        </tbody>
+      </table>
+    </div>
+
+    <button id="logoutButton">Cerrar Sesión</button>
+  </div>
+  <script type="module" src="script.js"></script>
+</body>
+</html>
