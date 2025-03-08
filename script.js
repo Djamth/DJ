@@ -9,8 +9,6 @@ let trabajadores = [];
 // Elementos del DOM
 const formTrabajador = document.getElementById('formTrabajador');
 const formRegistro = document.getElementById('formRegistro');
-const formAnticipo = document.getElementById('formAnticipo');
-const selectTrabajadorAnticipo = document.getElementById('trabajadorAnticipo');
 const tablaRegistros = document.getElementById('tablaRegistros').querySelector('tbody');
 const tablaResumen = document.getElementById('tablaResumen').querySelector('tbody');
 const tablaTrabajadores = document.getElementById('tablaTrabajadores').querySelector('tbody');
@@ -45,32 +43,10 @@ async function cargarTrabajadores() {
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${trabajador.nombre}</td>
-        <td>
-          <input type="number" id="pago-${trabajador.id}" value="${trabajador.pago_por_dia}" step="0.01" required>
-        </td>
-        <td>
-          <button onclick="actualizarPago(${trabajador.id})">Actualizar</button>
-          <button onclick="mostrarFormularioAnticipo(${trabajador.id})">Registrar Anticipo</button>
-        </td>
+        <td>${trabajador.pago_por_dia}</td>
       `;
       tablaTrabajadores.appendChild(row);
-
-      // Agregar al select de anticipos
-      const option = document.createElement('option');
-      option.value = trabajador.id;
-      option.textContent = trabajador.nombre;
-      selectTrabajadorAnticipo.appendChild(option);
     });
-  }
-}
-
-// Mostrar formulario de anticipo
-function mostrarFormularioAnticipo(trabajadorId) {
-  const trabajador = trabajadores.find(t => t.id === trabajadorId);
-  if (trabajador) {
-    selectTrabajadorAnticipo.value = trabajadorId; // Prellenar el select
-    formAnticipo.reset(); // Limpiar el formulario
-    formAnticipo.style.display = 'block'; // Mostrar el formulario
   }
 }
 
@@ -91,23 +67,6 @@ formTrabajador.addEventListener('submit', async (e) => {
     formTrabajador.reset();
   }
 });
-
-// Actualizar pago por día
-async function actualizarPago(trabajadorId) {
-  const nuevoPago = parseFloat(document.getElementById(`pago-${trabajadorId}`).value);
-
-  const { data, error } = await supabase
-    .from('trabajadores')
-    .update({ pago_por_dia: nuevoPago })
-    .eq('id', trabajadorId);
-
-  if (error) {
-    console.error('Error al actualizar el pago:', error);
-  } else {
-    alert('Pago actualizado correctamente');
-    await mostrarResumen(); // Mostrar resumen actualizado
-  }
-}
 
 // Registrar día y comidas
 formRegistro.addEventListener('submit', async (e) => {
@@ -137,27 +96,6 @@ formRegistro.addEventListener('submit', async (e) => {
   await mostrarRegistros(); // Mostrar registros actualizados
   await mostrarResumen();
   formRegistro.reset();
-});
-
-// Registrar anticipo
-formAnticipo.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  console.log("formulario  de anticipo enviado")
-  const trabajadorId = selectTrabajadorAnticipo.value;
-  const monto = parseFloat(document.getElementById('montoAnticipo').value);
-  const fecha = document.getElementById('fechaAnticipo').value;
-
-  const { data, error } = await supabase
-    .from('anticipos')
-    .insert([{ trabajador_id: trabajadorId, monto, fecha }]);
-
-  if (error) {
-    console.error('Error al registrar anticipo:', error);
-  } else {
-    await mostrarResumen(); // Mostrar resumen actualizado
-    formAnticipo.reset();
-    formAnticipo.style.display = 'none'; // Ocultar el formulario después de registrar
-  }
 });
 
 // Mostrar registros
@@ -280,65 +218,11 @@ async function calcularGastoComida(trabajadorId) {
   return totalComidas * costoPorComida;
 }
 
-// Calcular total a pagar
-async function calcularTotalPagar(trabajadorId) {
-  const { data: registros, error: errorRegistros } = await supabase
-    .from('registros')
-    .select('trabajo')
-    .eq('trabajador_id', trabajadorId)
-    .eq('trabajo', 'Sí');
-
-  if (errorRegistros) {
-    console.error('Error al calcular días trabajados:', errorRegistros);
-    return 0;
-  }
-
-  const diasTrabajados = registros.length;
-
-  const { data: trabajador, error: errorTrabajador } = await supabase
-    .from('trabajadores')
-    .select('pago_por_dia')
-    .eq('id', trabajadorId)
-    .single();
-
-  if (errorTrabajador) {
-    console.error('Error al obtener pago por día:', errorTrabajador);
-    return 0;
-  }
-
-  const pagoPorDia = trabajador.pago_por_dia || 0;
-  const totalPagar = diasTrabajados * pagoPorDia;
-
-  // Restar anticipos
-  const totalAnticipos = await calcularTotalAnticipos(trabajadorId);
-  return totalPagar - totalAnticipos;
-}
-
-// Calcular total de anticipos
-async function calcularTotalAnticipos(trabajadorId) {
-  const { data, error } = await supabase
-    .from('anticipos')
-    .select('monto')
-    .eq('trabajador_id', trabajadorId);
-
-  if (error) {
-    console.error('Error al calcular anticipos:', error);
-    return 0;
-  }
-
-  let totalAnticipos = 0;
-  data.forEach(anticipo => {
-    totalAnticipos += anticipo.monto;
-  });
-
-  return totalAnticipos;
-}
-
 // Mostrar resumen
 async function mostrarResumen() {
   const { data: trabajadores, error: errorTrabajadores } = await supabase
     .from('trabajadores')
-    .select('id, nombre');
+    .select('id, nombre, pago_por_dia');
 
   if (errorTrabajadores) {
     console.error('Error al cargar trabajadores:', errorTrabajadores);
@@ -349,18 +233,17 @@ async function mostrarResumen() {
 
   for (const trabajador of trabajadores) {
     const gastoComida = await calcularGastoComida(trabajador.id);
-    const totalPagar = await calcularTotalPagar(trabajador.id);
-    const totalAnticipos = await calcularTotalAnticipos(trabajador.id);
-    const diasTrabajados = await calcularDiasTrabajados(trabajador.id); // Nueva función para calcular días trabajados
+    const diasTrabajados = await calcularDiasTrabajados(trabajador.id);
+    const totalBruto = diasTrabajados * trabajador.pago_por_dia;
+    const totalAPagar = totalBruto ;
 
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${trabajador.nombre}</td>
-      <td>$${gastoComida}</td>
-      <td>${diasTrabajados}</td> <!-- Nueva columna para días trabajados -->
-      <td>$${totalPagar + totalAnticipos}</td>
-      <td>$${totalAnticipos}</td>
-      <td>$${totalPagar}</td>
+      <td>$${gastoComida.toFixed(2)}</td>
+      <td>${diasTrabajados}</td>
+      <td>$${totalBruto.toFixed(2)}</td>
+      <td>$${totalAPagar.toFixed(2)}</td>
     `;
     tablaResumen.appendChild(row);
   }
