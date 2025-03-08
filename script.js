@@ -135,12 +135,14 @@ formRegistro.addEventListener('submit', async (e) => {
   }
 
   await mostrarRegistros(); // Mostrar registros actualizados
+  await mostrarResumen();
   formRegistro.reset();
 });
 
 // Registrar anticipo
 formAnticipo.addEventListener('submit', async (e) => {
   e.preventDefault();
+  console.log("formulario  de anticipo enviado")
   const trabajadorId = selectTrabajadorAnticipo.value;
   const monto = parseFloat(document.getElementById('montoAnticipo').value);
   const fecha = document.getElementById('fechaAnticipo').value;
@@ -226,7 +228,7 @@ async function mostrarRegistros() {
               ${trabajadorRegistro.trabajó} - ${trabajadorRegistro.comidas}
             </td>`;
         } else {
-          row.innerHTML += `<td>No trabajó</td>`;
+          row.innerHTML += `<td>---</td>`;
         }
       });
 
